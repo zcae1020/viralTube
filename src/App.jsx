@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Youtube, TrendingUp, Filter, AlertCircle, Play } from 'lucide-react';
+import { Search, Youtube, TrendingUp, Filter, AlertCircle, Play, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
@@ -150,6 +150,39 @@ function App() {
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto">
+        {/* 추천/예시 기능 추가 */}
+        <section className="px-6 mb-10">
+          <div className="glass-morphism rounded-3xl p-6 md:p-8 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-white relative z-10">
+              <Star className="text-yellow-400 fill-yellow-400" size={24} /> 레전드 떡상 채널 / 키워드 탐색
+            </h3>
+            <p className="text-sm text-slate-400 mb-6 font-medium relative z-10">
+              구독자 수 대비 역대급 조회수를 기록하는 채널이나 영상 검색어들을 클릭하여 직접 확인해보세요!
+            </p>
+            <div className="flex flex-wrap gap-3 relative z-10">
+              {[
+                { label: '"알고리즘의 선택" 🚀', query: '알고리즘의 선택' },
+                { label: '첫 영상 떡상 사례 💥', query: '첫 영상 떡상' },
+                { label: '구독자 10명, 조회수 100만 🤯', query: '구독자 10명 조회수 100만' },
+                { label: '무명 유튜버 조회수 폭발 💎', query: '무명 유튜버 조회수 폭발' },
+                { label: '역대급 쇼츠 떡상 📱', query: '쇼츠 떡상 레전드' },
+              ].map((item, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setKeyword(item.query);
+                    fetchVideos(item.query);
+                  }}
+                  className="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/20 transition-all duration-300 text-sm font-semibold border border-white/10 hover:border-yellow-400/50 flex items-center gap-2 text-slate-200 hover:text-white"
+                >
+                  <Search size={16} className="text-slate-400" /> {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400 glass-morphism rounded-3xl mx-6">
             <motion.div
