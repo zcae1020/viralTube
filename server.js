@@ -13,12 +13,28 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 const API_KEY = process.env.VITE_YOUTUBE_API_KEY;
 
-// LRU 캐시 설정: 최대 1000개의 검색 결과만 메모리에 보관
-const options = {
-  max: 1000, // 최대 저장할 항목(검색 결과) 개수
-  ttl: 1000 * 60 * 60 * 24, // 24시간 동안 유지
-};
-const cache = new LRUCache(options);
+// 기본 제공 카테고리 (캐시에서 밀려나지 않도록 별도 관리)
+const defaultQueries = [
+  '코딩 브이로그',
+  '일상|브이로그|vlog',
+  '게임|리뷰|플레이',
+  '강아지|고양이|동물',
+  '이슈|뉴스|알아보기|꿀팁',
+  '먹방|요리|레시피|mukbang',
+  '여행|가볼만한곳|핫플'
+];
+
+// 고정 캐시: 기본 카테고리는 조회 빈도가 높으므로 밀려나지 않게 따로 저장
+const fixedCache = new LRUCache({
+  max: 100, // 카테고리 * 시간 조합을 다 합쳐도 100개면 충분
+  ttl: 1000 * 60 * 60 * 24, // 24시간
+});
+
+// 일반 캐시: 단순 사용자 검색 (1000개 초과 시 오래된 것부터 삭제)
+const cache = new LRUCache({
+  max: 1000,
+  ttl: 1000 * 60 * 60 * 24, // 24시간
+});
 
 const getPublishedAfter = (p) => {
   const d = new Date();
@@ -42,9 +58,13 @@ app.get('/api/videos', async (req, res) => {
 
   const cacheKey = `${searchQuery}_${overridePeriod}`;
   
-  const cachedData = cache.get(cacheKey);
+  // 기본 카테고리인지 확인하고 캐시를 나눔
+  const isDefaultQuery = defaultQueries.includes(searchQuery);
+  const targetCache = isDefaultQuery ? fixedCache : cache;
+  
+  const cachedData = targetCache.get(cacheKey);
   if (cachedData) {
-    console.log(`[Cache Hit] ${cacheKey} (Total cached items: ${cache.size})`);
+    console.log(`[Cache Hit] ${cacheKey} (Target: ${isDefaultQuery ? 'Fixed' : 'Normal'}, Size: ${targetCache.size})`);
     return res.json(cachedData);
   }
 
@@ -101,8 +121,8 @@ app.get('/api/videos', async (req, res) => {
         };
       }).sort((a, b) => b.ratio - a.ratio);
 
-    // 캐시에 저장
-    cache.set(cacheKey, enrichedVideos);
+    // 대상 캐시에 저장 (기본 카테고리면 fixedCache, 일반 검색이면 cache)
+    targetCache.set(cacheKey, enrichedVideos);
 
     res.json(enrichedVideos);
   } catch (error) {
