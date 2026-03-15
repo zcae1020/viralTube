@@ -58,7 +58,7 @@ function App() {
   useEffect(() => {
     if (apiKey) {
       // 컴포넌트 마운트 시 기본적으로 보여줄 인기 컨텐츠 키워드 검색
-      fetchVideos('코딩 브이로그');
+      fetchVideos('일상 브이로그');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
