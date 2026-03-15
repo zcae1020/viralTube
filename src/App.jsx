@@ -231,10 +231,18 @@ function App() {
 
                   {/* Info */}
                   <div className="p-5 pb-6 flex flex-col flex-1 text-left">
-                    <h3 className="text-lg font-bold leading-tight mb-2" style={{ wordBreak: 'keep-all' }}>
+                    <h3 
+                      className="text-lg font-bold leading-tight mb-2 line-clamp-2" 
+                      style={{ wordBreak: 'keep-all', minHeight: '45px' }}
+                      title={video.title}
+                    >
                       {video.title}
                     </h3>
-                    <p className="text-sm text-slate-400 font-semibold mb-4">
+                    <p 
+                      className="text-sm text-slate-400 font-semibold mb-4"
+                      style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                      title={video.channelTitle}
+                    >
                       {video.channelTitle}
                     </p>
 
