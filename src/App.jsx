@@ -210,12 +210,12 @@ function App() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="glass-morphism rounded-2xl overflow-hidden card-hover"
+                  className="glass-morphism rounded-2xl p-3.5 card-hover"
                   onClick={() => window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank')}
                   style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
                 >
                   {/* Thumbnail */}
-                  <div className="relative aspect-video overflow-hidden shrink-0">
+                  <div className="relative aspect-video rounded-xl overflow-hidden shrink-0">
                     <img 
                       src={video.thumbnail} 
                       alt={video.title} 
@@ -230,7 +230,7 @@ function App() {
                   </div>
 
                   {/* Info */}
-                  <div className="p-5 pb-6 flex flex-col flex-1 text-left">
+                  <div className="pt-4 px-1 pb-1 flex flex-col flex-1 text-left">
                     <h3 
                       className="text-lg font-bold leading-tight mb-2 line-clamp-2" 
                       style={{ wordBreak: 'keep-all', minHeight: '45px' }}
