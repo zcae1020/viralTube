@@ -56,7 +56,11 @@ const DashboardPage = () => {
         });
         
         const enriched = res.data.map(ch => {
-          const score = Math.min(99, Math.floor(50 + (ch.ratio * 30)));
+          // 발전 가능성 스케일 조정 (최대 99.9)
+          // Ratio 1.0 기준 약 20~25점, Ratio 0.3 미만은 5점 이하로 배치
+          const raw = (ch.ratio * 24) + (Math.log10(ch.views || 1) * 3) - 18;
+          const score = Math.min(99.9, Math.max(1.2, raw)).toFixed(1);
+          
           return {
             ...ch,
             opportunityScore: score,

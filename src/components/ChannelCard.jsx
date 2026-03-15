@@ -75,12 +75,12 @@ const ChannelCard = ({ channel, onSave, isSaved, onRemove, onClick }) => {
         <div className="stat-item">
           <span className="stat-label">Opportunity</span>
           <div className="flex items-center gap-2">
-            <span className="stat-value" style={{ color: channel.opportunityScore > 70 ? 'var(--warning)' : 'white' }}>
-                {channel.opportunityScore || 75}
+            <span className="stat-value" style={{ color: parseFloat(channel.opportunityScore) >= 60 ? 'var(--warning)' : 'white' }}>
+                {channel.opportunityScore || '0.0'}
             </span>
             <div className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
           </div>
-          <span className="text-xs text-muted mt-1">성공 가능성</span>
+          <span className="text-xs text-muted mt-1">발전 가능성</span>
         </div>
       </div>
 

@@ -49,17 +49,23 @@ const ExplorePage = () => {
       });
       
       // Enrich & Filter
-      let processed = res.data.map(ch => ({
-        ...ch,
-        opportunityScore: Math.floor(65 + Math.random() * 30),
-        uploadFrequency: Math.floor(1 + Math.random() * 5),
+      let processed = res.data.map(ch => {
+        // 발전 가능성 스케일 조정 (최대 99.9)
+        const raw = (ch.ratio * 24) + (Math.log10(ch.views || 1) * 3) - 18;
+        const score = Math.min(99.9, Math.max(1.2, raw)).toFixed(1);
+        return {
+          ...ch,
+          // 0~99.9 사이의 넓은 스펙트럼으로 발전 가능성 표시
+          opportunityScore: score,
+          uploadFrequency: Math.floor(1 + Math.random() * 5),
         isNew: Math.random() > 0.8,
         category: categories[Math.floor(Math.random() * categories.length)],
         topVideoId: ch.id,
         latestVideoId: ch.id,
         topVideoThumbnail: ch.thumbnail,
         latestVideoThumbnail: ch.thumbnail,
-      }));
+        };
+      });
 
       // Apply Filter Logic
       if (selectedCategories.length > 0) {

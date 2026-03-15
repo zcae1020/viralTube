@@ -81,10 +81,15 @@ const ChannelDetail = ({ channel, onClose }) => {
                     <div className="w-2 h-2 rounded-full bg-warning animate-pulse" />
                 </div>
                 <div className="flex items-baseline gap-2">
-                    <h3 className="text-4xl m-0 text-white font-black">{channel.opportunityScore || 82}</h3>
+                    <h3 className="text-4xl m-0 text-white font-black">{channel.opportunityScore || '0.0'}</h3>
                     <span className="text-sm text-secondary font-bold">/ 100</span>
                 </div>
-                <p className="text-[10px] text-muted mt-2 font-medium">따라 만들었을 때 성공 확률 <strong>매우 높음</strong></p>
+                <p className="text-[10px] text-muted mt-2 font-medium">채널의 향후 <strong>발전 가능성</strong> 점수: <strong>{
+                        parseFloat(channel.opportunityScore) >= 90 ? '독보적 (Unicorn)' : 
+                        parseFloat(channel.opportunityScore) >= 70 ? '매우 높음' : 
+                        parseFloat(channel.opportunityScore) >= 40 ? '높음' : 
+                        parseFloat(channel.opportunityScore) >= 15 ? '보통' : '관찰 필요'
+                }</strong></p>
             </div>
             
             <div className="card border-success/20">
@@ -166,7 +171,7 @@ const ChannelDetail = ({ channel, onClose }) => {
           <div>
             <h4 className="mb-4 text-xs font-bold uppercase text-muted tracking-widest flex items-center gap-2">
                 <CheckCircle2 size={16} className="text-success" />
-                성공 복제 가이드 (Success Patterns)
+                성장 전략 가이드 (Growth Patterns)
             </h4>
             <div className="space-y-3">
                 {[
