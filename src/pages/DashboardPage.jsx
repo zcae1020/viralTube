@@ -8,27 +8,66 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [channels, setChannels] = useState([]);
   const [selectedChannel, setSelectedChannel] = useState(null);
+  const [filter, setFilter] = useState('all'); // 'all', 'viral', 'top-cat', 'above-avg'
+
+  const stats = React.useMemo(() => {
+    if (channels.length === 0) return { total: 0, avgRatio: '0.00', viral: 0, topCategory: '-', maxAvg: '0.0', catList: [] };
+    
+    const total = channels.length;
+    const avgVal = channels.reduce((acc, ch) => acc + (ch.ratio || 0), 0) / total;
+    const avgRatio = avgVal.toFixed(2);
+    const viral = channels.filter(ch => (ch.ratio || 0) > 1.5).length;
+    
+    const catGroups = {};
+    channels.forEach(ch => {
+      if (!catGroups[ch.category]) catGroups[ch.category] = { sum: 0, count: 0 };
+      catGroups[ch.category].sum += (ch.ratio || 0);
+      catGroups[ch.category].count += 1;
+    });
+    
+    let bestCat = '-';
+    let maxAvgVal = 0;
+    const catList = Object.entries(catGroups).map(([name, data]) => {
+      const avg = data.sum / data.count;
+      if (avg > maxAvgVal) {
+        maxAvgVal = avg;
+        bestCat = name;
+      }
+      return { name, avg: avg.toFixed(1), count: data.count };
+    }).sort((a, b) => b.avg - a.avg);
+
+    return { total, avgRatio, viral, topCategory: bestCat, maxAvg: maxAvgVal.toFixed(1), catList, rawAvg: avgVal };
+  }, [channels]);
+
+  const filteredChannels = React.useMemo(() => {
+    if (filter === 'all') return channels;
+    if (filter === 'viral') return channels.filter(ch => ch.ratio > 1.5);
+    if (filter === 'top-cat') return channels.filter(ch => ch.category === stats.topCategory);
+    if (filter === 'above-avg') return channels.filter(ch => ch.ratio > stats.rawAvg);
+    return channels;
+  }, [channels, filter, stats]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
         const res = await axios.get(`${baseUrl}/api/videos`, {
-          params: { searchQuery: '일상|브이로그|재테크|AI', overridePeriod: '1m' }
+          params: { searchQuery: '일상|브이로그|재테크|AI|코딩|뉴스', overridePeriod: '1m' }
         });
         
-        // Enrich data with mock fields for the new UI
-        const enriched = res.data.map(ch => ({
-          ...ch,
-          opportunityScore: Math.floor(65 + Math.random() * 30),
-          uploadFrequency: Math.floor(1 + Math.random() * 5),
-          isNew: Math.random() > 0.7,
-          category: ['일상', '금융', 'AI', '엔터'][Math.floor(Math.random() * 4)],
-          topVideoId: ch.id, // Fallback
-          latestVideoId: ch.id, // Fallback
-          topVideoThumbnail: ch.thumbnail,
-          latestVideoThumbnail: ch.thumbnail,
-        }));
+        const enriched = res.data.map(ch => {
+          const score = Math.min(99, Math.floor(50 + (ch.ratio * 30)));
+          return {
+            ...ch,
+            opportunityScore: score,
+            uploadFrequency: Math.floor(2 + Math.random() * 4), 
+            isNew: (ch.ratio > 2.0),
+            topVideoId: ch.id,
+            latestVideoId: ch.id,
+            topVideoThumbnail: ch.thumbnail,
+            latestVideoThumbnail: ch.thumbnail,
+          };
+        });
         
         setChannels(enriched);
       } catch (err) {
@@ -40,13 +79,6 @@ const DashboardPage = () => {
     fetchInitialData();
   }, []);
 
-  const categories = [
-    { name: '금융/재테크', growth: '+24%', color: 'var(--success)' },
-    { name: '게임/엔터', growth: '+18%', color: 'var(--primary)' },
-    { name: 'AI/IT 기술', growth: '+42%', color: 'var(--warning)' },
-    { name: '교육/자기계발', growth: '+12%', color: 'var(--secondary)' },
-  ];
-
   return (
     <div className="overflow-auto h-full p-6 no-scrollbar">
       <div className="mb-8 flex justify-between items-start">
@@ -55,51 +87,64 @@ const DashboardPage = () => {
             <p className="text-secondary text-sm">급상승 채널과 벤치마킹 기회를 실시간으로 분석합니다.</p>
         </div>
         <div className="flex gap-3">
-            <div className="flex gap-2 text-[10px] font-bold text-muted bg-card p-2 px-3 rounded-md border border-border items-center">
+            <div className="flex gap-2 text-[10px] font-bold text-muted bg-card p-2 px-3 rounded-md border border-border items-center cursor-pointer" onClick={() => setFilter('all')}>
                 <Globe size={12} className="text-primary" />
                 KR Market <span className="text-success">Live</span>
+                {filter !== 'all' && <span className="ml-2 bg-primary/20 text-primary px-1.5 rounded">Filter Active</span>}
             </div>
-            <button className="btn btn-secondary p-2 py-1.5 flex gap-2">
+            <button className="btn btn-secondary p-2 py-1.5 flex gap-2" onClick={() => setFilter('all')}>
                 <Filter size={14} />
-                <span className="text-xs">전체 필터</span>
+                <span className="text-xs">전체 필터 초기화</span>
             </button>
         </div>
       </div>
 
-      {/* Summary Cards - Grid of 4 */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="card border-l-4 border-l-primary">
+        <div 
+            className={`card border-l-4 border-l-primary cursor-pointer transition-all hover:scale-[1.02] ${filter === 'all' ? 'bg-primary/5' : ''}`}
+            onClick={() => setFilter('all')}
+        >
             <span className="stat-label flex items-center gap-1">
                 < Award size={12} className="text-primary" />
                 분석된 위성 채널
             </span>
-            <h3 className="text-2xl m-0 mt-1">2,482</h3>
+            <h3 className="text-2xl m-0 mt-1">{stats.total.toLocaleString()}</h3>
             <div className="flex items-center gap-1 text-[10px] text-success font-bold mt-1">
-                <ArrowUpRight size={10} /> +12% vs last week
+                <ArrowUpRight size={10} /> Live Data
             </div>
         </div>
-        <div className="card border-l-4 border-l-warning">
+        <div 
+            className={`card border-l-4 border-l-warning cursor-pointer transition-all hover:scale-[1.02] ${filter === 'top-cat' ? 'bg-warning/5' : ''}`}
+            onClick={() => setFilter('top-cat')}
+        >
             <span className="stat-label flex items-center gap-1">
                 <Flame size={12} className="text-warning" />
                 성장 가속도 1위
             </span>
-            <h3 className="text-2xl m-0 mt-1">AI-IT 기술</h3>
-            <span className="text-[10px] text-muted">평균 조회 효율 2.4x</span>
+            <h3 className="text-2xl m-0 mt-1">{stats.topCategory}</h3>
+            <span className="text-[10px] text-muted">평균 효율 {stats.maxAvg}x</span>
         </div>
-        <div className="card border-l-4 border-l-success">
+        <div 
+            className={`card border-l-4 border-l-success cursor-pointer transition-all hover:scale-[1.02] ${filter === 'viral' ? 'bg-success/5' : ''}`}
+            onClick={() => setFilter('viral')}
+        >
             <span className="stat-label flex items-center gap-1">
                 <Zap size={12} className="text-success fill-success" />
                 실시간 떡상 감지
             </span>
-            <h3 className="text-2xl m-0 mt-1 text-success">12</h3>
-            <span className="text-[10px] text-muted">최근 24시간 이내 발생</span>
+            <h3 className="text-2xl m-0 mt-1 text-success">{stats.viral}</h3>
+            <span className="text-[10px] text-muted">최근 분석 기준 (Ratio &gt; 1.5)</span>
         </div>
-        <div className="card border-l-4 border-l-secondary">
+        <div 
+            className={`card border-l-4 border-l-secondary cursor-pointer transition-all hover:scale-[1.02] ${filter === 'above-avg' ? 'bg-secondary/5' : ''}`}
+            onClick={() => setFilter('above-avg')}
+        >
             <span className="stat-label flex items-center gap-1">
                 <Globe size={12} className="text-secondary" />
                 시장 평균 효율성
             </span>
-            <h3 className="text-2xl m-0 mt-1">0.82x</h3>
+            <h3 className="text-2xl m-0 mt-1">{stats.avgRatio}x</h3>
             <span className="text-[10px] text-muted">구독자 대비 조회수</span>
         </div>
       </div>
@@ -114,27 +159,34 @@ const DashboardPage = () => {
                 </h3>
             </div>
             <div className="flex flex-col gap-2">
-                {categories.map((cat, i) => (
-                    <div key={i} className="card flex items-center justify-between p-3 px-4 hover:translate-x-1">
+                {stats.catList.slice(0, 5).map((cat, i) => (
+                    <div key={i} className="card flex items-center justify-between p-3 px-4 hover:translate-x-1 cursor-pointer" onClick={() => {
+                        setFilter('top-cat');
+                    }}>
                         <div className="flex items-center gap-3">
-                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cat.color }} />
-                            <span className="font-bold text-xs">{cat.name}</span>
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            <div>
+                                <div className="font-bold text-xs">{cat.name}</div>
+                                <div className="text-[10px] text-muted">{cat.count}개 분석됨</div>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-1 text-success text-[10px] font-bold">
-                            {cat.growth}
-                            <ArrowUpRight size={12} />
+                        <div className="flex flex-col items-end">
+                            <div className="flex items-center gap-1 text-success text-[10px] font-bold">
+                                {cat.avg}x 효율
+                                <ArrowUpRight size={12} />
+                            </div>
                         </div>
                     </div>
                 ))}
             </div>
-            
+
             <div className="mt-6 card bg-primary-glow border-primary/20">
                 <h4 className="text-xs text-primary mb-2 flex items-center gap-2">
                     <Zap size={12} fill="currentColor" />
-                    YouTube Studio Insight
+                    Market Insight
                 </h4>
                 <p className="text-xs text-secondary leading-relaxed font-medium">
-                    이번 주 <span className="text-white font-bold">얼굴 없는 정보 채널</span>들이 평균보다 3.2배 높은 CPM을 기록하고 있습니다. 지금 진입하기 가장 좋은 타이밍입니다.
+                    현재 분석된 <span className="text-white font-bold">{stats.total}개</span> 채널 중 <span className="text-success font-bold">{stats.viral}개</span>가 시장 평균보다 1.5배 이상 높은 조회 효율을 보이고 있습니다.
                 </p>
             </div>
         </div>
@@ -144,9 +196,13 @@ const DashboardPage = () => {
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm flex items-center gap-2 m-0 uppercase text-muted tracking-wider">
                     <Flame size={16} className="text-warning fill-warning" />
-                    오늘의 떡상 채널
+                    {filter === 'all' ? '오늘의 떡상 채널' : 
+                     filter === 'viral' ? '실시간 떡상 정밀 분석' :
+                     filter === 'top-cat' ? `${stats.topCategory} 집중 분석` : '시장 평균 이상 채널'}
                 </h3>
-                <button className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded hover:bg-primary/20" onClick={() => window.location.href='/explore'}>전체 리서치</button>
+                {filter !== 'all' && (
+                    <button className="text-[10px] font-bold text-muted border border-border px-2 py-1 rounded hover:bg-card" onClick={() => setFilter('all')}>필터 해제</button>
+                )}
             </div>
 
             {loading ? (
@@ -154,9 +210,13 @@ const DashboardPage = () => {
                     <Zap size={24} className="mx-auto mb-2 animate-bounce text-warning" />
                     실시간 트렌드 소싱 중...
                 </div>
+            ) : filteredChannels.length === 0 ? (
+                <div className="p-20 text-center text-muted card bg-sidebar border-dashed">
+                    조건에 맞는 채널이 없습니다.
+                </div>
             ) : (
                 <div className="flex flex-col gap-3">
-                    {channels.slice(0, 5).map((channel, i) => (
+                    {filteredChannels.slice(0, 8).map((channel, i) => (
                         <ChannelCard 
                           key={i} 
                           channel={channel} 
