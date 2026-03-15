@@ -56,7 +56,7 @@ app.get('/api/videos', async (req, res) => {
     return res.status(500).json({ error: 'YouTube API Key is missing on the server' });
   }
 
-  const cacheKey = `${searchQuery}_${overridePeriod}`;
+  const cacheKey = `v2_${searchQuery}_${overridePeriod}`;
   
   // 기본 카테고리인지 확인하고 캐시를 나눔
   const isDefaultQuery = defaultQueries.includes(searchQuery);
@@ -109,15 +109,36 @@ app.get('/api/videos', async (req, res) => {
       .map(item => {
         const views = statsMap[item.id.videoId] || 0;
         const subs = channelMap[item.snippet.channelId] || 1;
+        const ratio = parseFloat((views / subs).toFixed(2));
+        // Simulated metrics for Pint + ChannelFinder Hybrid
+        const growth24h = Math.floor(views * (0.05 + Math.random() * 0.15));
+        const velocity = parseFloat((0.5 + Math.random() * 4.5).toFixed(1));
+        const trend = Array.from({ length: 7 }, () => ({
+            v: Math.floor(Math.random() * 100)
+        }));
+        
+        // ChannelFinder specific simulated data
+        const categories = ['금융/재테크', 'IT/기술', '라이프스타일', '게임/엔터', '교육'];
+        const category = categories[Math.floor(Math.random() * categories.length)];
+        const tags = ['얼굴없는채널', 'AI제작', '고유지율', '조회수급상승'].sort(() => 0.5 - Math.random()).slice(0, 2);
+        const estEarnings = Math.floor((views / 1000) * (1.5 + Math.random() * 3.5)); // $ per 1000 views
+
         return {
           id: item.id.videoId,
+          channelId: item.snippet.channelId,
           title: item.snippet.title,
           thumbnail: item.snippet.thumbnails.high.url,
           channelTitle: item.snippet.channelTitle,
           views,
           subscribers: subs,
-          ratio: parseFloat((views / subs).toFixed(2)),
-          publishedAt: item.snippet.publishedAt
+          ratio,
+          publishedAt: item.snippet.publishedAt,
+          growth24h,
+          velocity,
+          trend,
+          category,
+          tags,
+          estEarnings
         };
       }).sort((a, b) => b.ratio - a.ratio);
 

@@ -1,16 +1,20 @@
-# React + Vite
+# PINT MVP - YouTube Sourcing & Analysis Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A professional dashboard for discovering and benchmarking rapidly growing YouTube channels.
 
-Currently, two official plugins are available:
+## Core Features
+- **Rising Dashboard**: Get a bird's eye view of today's market movers.
+- **Velocity Search**: Find channels with the highest growth-to-subscriber ratio.
+- **Trend Analytics**: Visual sparklines for 7-day performance.
+- **Benchmarking Workspace**: Save channels and record strategic notes.
+- **AI-lite Insights**: Qualitative analysis of thumbnail and hook patterns.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
+- **Frontend**: React, Vite, Framer Motion, Recharts, Lucide Icons
+- **Backend**: Express, YouTube Data API v3 (Proxy with LRU Cache)
+- **Styling**: Vanilla CSS (Financial/SaaS Aesthetic)
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Getting Started
+1. `npm install`
+2. Set your `VITE_YOUTUBE_API_KEY` in `.env.local`
+3. `npm start`
