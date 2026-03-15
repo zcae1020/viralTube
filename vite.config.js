@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     server: {
-      allowedHosts: [env.VITE_API_BASE_URL]
+      allowedHosts: [env.VITE_SITE_BASE_URL]
     }
   }
 })
