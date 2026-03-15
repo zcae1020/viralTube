@@ -32,7 +32,8 @@ function App() {
 
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:3001/api/videos', {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+      const res = await axios.get(`${baseUrl}/api/videos`, {
         params: {
           searchQuery,
           overridePeriod

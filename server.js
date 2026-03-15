@@ -10,7 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const API_KEY = process.env.VITE_YOUTUBE_API_KEY;
 
 // LRU 캐시 설정: 최대 1000개의 검색 결과만 메모리에 보관
