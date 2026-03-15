@@ -1,14 +1,14 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  TrendingUp, 
+  Home,
   Search, 
   Bookmark, 
-  BarChart2, 
   Settings, 
   Zap,
   Globe,
-  Youtube
+  TrendingUp,
+  LayoutDashboard
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -20,39 +20,39 @@ const Sidebar = () => {
       </div>
 
       <nav className="flex-1 overflow-auto no-scrollbar">
-        <div className="nav-label">워크스페이스</div>
+        <div className="nav-label">Main Menu</div>
         <NavLink to="/" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <BarChart2 size={20} />
-          <span>시장 인텔리전스</span>
+          <Home size={20} />
+          <span>Home (Viral)</span>
         </NavLink>
         <NavLink to="/explore" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <Search size={20} />
-          <span>채널 파인더</span>
+          <span>Explore (Search)</span>
         </NavLink>
         <NavLink to="/saved" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <Bookmark size={20} />
-          <span>성장 노트</span>
+          <span>Saved (Benchmark)</span>
         </NavLink>
 
-        <div className="nav-label">빠른 필터</div>
+        <div className="nav-label">Quick Insights</div>
         <a href="#" className="nav-item">
           <Zap size={20} className="text-warning" />
-          <span>24시간 급상승</span>
+          <span>24h Hot</span>
         </a>
         <a href="#" className="nav-item">
           <TrendingUp size={20} className="text-success" />
-          <span>성장 가속도</span>
+          <span>High Growth</span>
         </a>
         <a href="#" className="nav-item">
           <Globe size={20} />
-          <span>글로벌 트렌드</span>
+          <span>Global Trends</span>
         </a>
       </nav>
 
-      <div className="mt-auto pt-4 border-t-slate">
+      <div className="mt-auto pt-4 border-t border-border">
         <NavLink to="/settings" className="nav-item">
           <Settings size={20} />
-          <span>환경 설정</span>
+          <span>Settings</span>
         </NavLink>
       </div>
     </aside>
