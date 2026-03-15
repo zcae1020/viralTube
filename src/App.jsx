@@ -3,63 +3,9 @@ import { Search, Youtube, TrendingUp, Filter, AlertCircle, Play } from 'lucide-r
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
-// Mock data for demonstration
-const MOCK_VIDEOS = [
-  {
-    id: '1',
-    title: 'How I Built a Rocket in my Basement',
-    thumbnail: 'https://images.unsplash.com/photo-1517976487492-5750f3195933?w=800&q=80',
-    channelTitle: 'Basement Engineer',
-    views: 1200000,
-    subscribers: 5000,
-    ratio: 240,
-    publishedAt: '2024-03-10'
-  },
-  {
-    id: '2',
-    title: '10 Secrets of the Deep Ocean',
-    thumbnail: 'https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=800&q=80',
-    channelTitle: 'Nature Insider',
-    views: 850000,
-    subscribers: 25000,
-    ratio: 34,
-    publishedAt: '2024-03-12'
-  },
-  {
-    id: '3',
-    title: 'World\'s Smallest Computer Teardown',
-    thumbnail: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
-    channelTitle: 'TechNano',
-    views: 2500000,
-    subscribers: 15000,
-    ratio: 166,
-    publishedAt: '2024-03-11'
-  },
-  {
-    id: '4',
-    title: 'Hiking Across the Sahara Desert Alone',
-    thumbnail: 'https://images.unsplash.com/photo-1509316975850-ff9c5edd0ea9?w=800&q=80',
-    channelTitle: 'Adventure Seeker',
-    views: 3200000,
-    subscribers: 80000,
-    ratio: 40,
-    publishedAt: '2024-03-09'
-  },
-  {
-    id: '5',
-    title: 'The Math Behind Winning Every Time',
-    thumbnail: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&q=80',
-    channelTitle: 'Logic Wizard',
-    views: 450000,
-    subscribers: 1200,
-    ratio: 375,
-    publishedAt: '2024-03-13'
-  }
-];
-
 function App() {
   const [keyword, setKeyword] = useState('');
-  const [videos, setVideos] = useState(MOCK_VIDEOS);
+  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [apiKey, setApiKey] = useState(import.meta.env.VITE_YOUTUBE_API_KEY || '');
   const [showKeyInput, setShowKeyInput] = useState(false);
@@ -70,9 +16,8 @@ function App() {
     return num;
   };
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!keyword) return;
+  const fetchVideos = async (searchQuery) => {
+    if (!searchQuery) return;
     if (!apiKey) {
       alert('실시간 데이터를 검색하려면 YouTube API Key가 필요합니다.');
       return;
@@ -81,7 +26,7 @@ function App() {
     setLoading(true);
     try {
       const searchRes = await axios.get('https://www.googleapis.com/youtube/v3/search', {
-        params: { part: 'snippet', q: keyword, maxResults: 15, type: 'video', key: apiKey }
+        params: { part: 'snippet', q: searchQuery, maxResults: 15, type: 'video', key: apiKey }
       });
 
       const videoIds = searchRes.data.items.map(item => item.id.videoId).join(',');
@@ -123,6 +68,19 @@ function App() {
       setLoading(false);
     }
   };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchVideos(keyword);
+  };
+
+  useEffect(() => {
+    if (apiKey) {
+      // 컴포넌트 마운트 시 기본적으로 보여줄 인기 컨텐츠 키워드 검색
+      fetchVideos('코딩 브이로그');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="pb-20">
@@ -192,65 +150,89 @@ function App() {
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between px-6 mb-4">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <TrendingUp className="text-red-500" /> 분석 결과
-          </h2>
-        </div>
-
-        <div className="grid-container">
-          {videos.map((video, index) => (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 glass-morphism rounded-3xl mx-6">
             <motion.div
-              key={video.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="glass-morphism rounded-3xl overflow-hidden card-hover"
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              className="mb-6"
             >
-              {/* Thumbnail */}
-              <div className="relative aspect-video overflow-hidden">
-                <img 
-                  src={video.thumbnail} 
-                  alt={video.title} 
-                  className="w-full h-full card-img-hover transition-transform duration-500"
-                  style={{ objectFit: 'cover' }}
-                />
-                <div className="absolute inset-0 overlay-gradient flex items-end p-4">
-                  <div className="badge badge-viral flex items-center gap-1">
-                    <TrendingUp size={12} /> {video.ratio}x 파급력
-                  </div>
-                </div>
-              </div>
-
-              {/* Info */}
-              <div className="p-5">
-                <h3 className="text-lg font-bold leading-tight mb-2 line-clamp-2">
-                  {video.title}
-                </h3>
-                <p className="text-sm text-slate-400 font-semibold mb-4">
-                  {video.channelTitle}
-                </p>
-
-                <div className="flex items-center justify-between pt-4 border-t-slate">
-                  <div className="text-center">
-                    <div className="text-xs text-slate-500 uppercase font-bold mb-1">Views</div>
-                    <div className="text-sm font-bold">{formatNumber(video.views)}</div>
-                  </div>
-                  <div className="stats-divider"></div>
-                  <div className="text-center">
-                    <div className="text-xs text-slate-500 uppercase font-bold mb-1">Subs</div>
-                    <div className="text-sm font-bold">{formatNumber(video.subscribers)}</div>
-                  </div>
-                  <div className="stats-divider"></div>
-                  <div className="text-center">
-                    <div className="text-xs text-slate-500 uppercase font-bold mb-1">Ratio</div>
-                    <div className="text-sm font-bold text-red-500">{video.ratio}</div>
-                  </div>
-                </div>
-              </div>
+              <TrendingUp size={48} className="text-red-500" />
             </motion.div>
-          ))}
-        </div>
+            <p className="text-xl font-semibold mb-2 text-white">데이터를 분석 중입니다...</p>
+            <p className="text-sm">잠시만 기다려주세요</p>
+          </div>
+        ) : videos.length > 0 ? (
+          <>
+            <div className="flex items-center justify-between px-6 mb-4">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <TrendingUp className="text-red-500" /> 분석 결과
+              </h2>
+            </div>
+
+            <div className="grid-container">
+              {videos.map((video, index) => (
+                <motion.div
+                  key={video.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="glass-morphism rounded-2xl overflow-hidden card-hover"
+                  onClick={() => window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank')}
+                  style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
+                >
+                  {/* Thumbnail */}
+                  <div className="relative aspect-video overflow-hidden shrink-0">
+                    <img 
+                      src={video.thumbnail} 
+                      alt={video.title} 
+                      className="w-full h-full card-img-hover transition-transform duration-500"
+                      style={{ objectFit: 'cover' }}
+                    />
+                    <div className="absolute inset-0 overlay-gradient flex items-end p-4">
+                      <div className="badge badge-viral flex items-center gap-1">
+                        <TrendingUp size={12} /> {video.ratio}x 파급력
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-5 pb-6 flex flex-col flex-1 text-left">
+                    <h3 className="text-lg font-bold leading-tight mb-2" style={{ wordBreak: 'keep-all' }}>
+                      {video.title}
+                    </h3>
+                    <p className="text-sm text-slate-400 font-semibold mb-4">
+                      {video.channelTitle}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-4 border-t-slate mt-auto">
+                      <div className="text-center">
+                        <div className="text-xs text-slate-500 uppercase font-bold mb-1">Views</div>
+                        <div className="text-sm font-bold">{formatNumber(video.views)}</div>
+                      </div>
+                      <div className="stats-divider"></div>
+                      <div className="text-center">
+                        <div className="text-xs text-slate-500 uppercase font-bold mb-1">Subs</div>
+                        <div className="text-sm font-bold">{formatNumber(video.subscribers)}</div>
+                      </div>
+                      <div className="stats-divider"></div>
+                      <div className="text-center">
+                        <div className="text-xs text-slate-500 uppercase font-bold mb-1">Ratio</div>
+                        <div className="text-sm font-bold text-red-500">{video.ratio}</div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="text-center text-slate-400 py-20 glass-morphism rounded-3xl mx-6">
+            <Search className="mx-auto mb-4 opacity-50" size={48} />
+            <p className="text-xl font-semibold mb-2">검색 결과가 없습니다</p>
+            <p className="text-sm">위 검색창에서 궁금한 주제, 예를 들면 "제주도 브이로그" 같은 것들을 검색해보세요!</p>
+          </div>
+        )}
       </main>
 
       <footer className="mt-20 border-t-slate py-10 text-center text-slate-500 text-sm">
